@@ -18,6 +18,7 @@ dist/
 .vscode/
 *.swp
 
-# Data (runtime DB / local state at repo root only)
+# Data (runtime DB / local state)
 /data/
+backend/data/
 .dev-ports.json
