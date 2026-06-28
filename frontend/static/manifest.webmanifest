@@ -1,0 +1,16 @@
+{
+	"name": "News Router",
+	"short_name": "News",
+	"description": "Household news aggregator",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#090a0e",
+	"theme_color": "#090a0e",
+	"icons": [
+		{
+			"src": "/favicon.ico",
+			"sizes": "48x48",
+			"type": "image/x-icon"
+		}
+	]
+}

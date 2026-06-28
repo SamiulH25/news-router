@@ -1,0 +1,14 @@
+{
+	"name": "news-router",
+	"private": true,
+	"version": "1.0.0",
+	"type": "module",
+	"scripts": {
+		"setup": "node scripts/setup.mjs",
+		"start:dev": "node scripts/start-dev.mjs",
+		"open-firewall": "node scripts/open-firewall.mjs",
+		"fix-lan": "node scripts/fix-lan.mjs",
+		"start:prod": "node scripts/start-prod.mjs",
+		"start:prod:local": "node scripts/start-prod-local.mjs"
+	}
+}

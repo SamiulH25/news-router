@@ -1,0 +1,14 @@
+# Reverse-proxy recipe for production (TLS + single origin)
+# Usage: set DOMAIN and run `caddy run --config Caddyfile`
+
+{$DOMAIN:localhost} {
+	encode gzip
+
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		reverse_proxy frontend:3000
+	}
+}

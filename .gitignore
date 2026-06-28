@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+*.db
+
+# Node
+node_modules/
+.svelte-kit/
+build/
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Data (runtime DB / local state at repo root only)
+/data/
+.dev-ports.json

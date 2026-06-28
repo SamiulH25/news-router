@@ -1,0 +1,86 @@
+services:
+  api:
+    profiles: [dev, prod]
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/news_router.db
+      - SECRET_KEY=${SECRET_KEY:-local-dev-secret-change-me}
+      - CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://0.0.0.0:5173,http://localhost:3000
+      - NTFY_BASE_URL=http://ntfy:80
+      - APP_BASE_URL=http://localhost:3000
+      - FEED_POLL_INTERVAL_MINUTES=45
+      - FEED_WINDOW_HOURS=12
+      - DIGEST_MORNING_HOUR=7
+      - DIGEST_MORNING_MINUTE=0
+      - DIGEST_EVENING_HOUR=19
+      - DIGEST_EVENING_MINUTE=0
+      - ALLOW_REGISTRATION=true
+    volumes:
+      - api-data:/app/data
+    depends_on:
+      - ntfy
+
+  frontend:
+    profiles: [dev]
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - API_PROXY_TARGET=http://api:8000
+    depends_on:
+      - api
+
+  frontend-prod:
+    profiles: [prod]
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - "3000:3000"
+    environment:
+      - API_PROXY_TARGET=http://api:8000
+      - PORT=3000
+      - HOST=0.0.0.0
+    depends_on:
+      - api
+
+  api-postgres:
+    profiles: [postgres]
+    build: ./backend
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://news:news@postgres:5432/news_router
+      - SECRET_KEY=${SECRET_KEY:-local-dev-secret-change-me}
+      - NTFY_BASE_URL=http://ntfy:80
+      - APP_BASE_URL=http://localhost:3000
+      - ALLOW_REGISTRATION=true
+    depends_on:
+      - postgres
+      - ntfy
+
+  postgres:
+    profiles: [postgres]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: news
+      POSTGRES_PASSWORD: news
+      POSTGRES_DB: news_router
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  ntfy:
+    profiles: [dev, prod]
+    image: binwiederhier/ntfy:latest
+    command: serve
+    ports:
+      - "2586:80"
+    volumes:
+      - ntfy-data:/var/lib/ntfy
+    environment:
+      - NTFY_BASE_URL=http://localhost:2586
+
+volumes:
+  api-data:
+  ntfy-data:
+  pg-data:
