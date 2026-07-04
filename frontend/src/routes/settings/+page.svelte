@@ -151,12 +151,20 @@
 				</div>
 			</div>
 			<div class="grid-2" style="margin-top: 0.75rem">
-				<div>
-					<label class="label">Morning digest</label>
+				<fieldset class="digest-field">
+					<legend class="label">Morning digest</legend>
 					<div class="time-row">
-						<input class="input" type="number" min="0" max="23" bind:value={user.digest_hour} />
-						<span>:</span>
 						<input
+							id="digest-hour"
+							class="input"
+							type="number"
+							min="0"
+							max="23"
+							bind:value={user.digest_hour}
+						/>
+						<span aria-hidden="true">:</span>
+						<input
+							id="digest-minute"
 							class="input"
 							type="number"
 							min="0"
@@ -164,19 +172,21 @@
 							bind:value={user.digest_minute}
 						/>
 					</div>
-				</div>
-				<div>
-					<label class="label">Evening digest</label>
+				</fieldset>
+				<fieldset class="digest-field">
+					<legend class="label">Evening digest</legend>
 					<div class="time-row">
 						<input
+							id="digest-evening-hour"
 							class="input"
 							type="number"
 							min="0"
 							max="23"
 							bind:value={user.digest_evening_hour}
 						/>
-						<span>:</span>
+						<span aria-hidden="true">:</span>
 						<input
+							id="digest-evening-minute"
 							class="input"
 							type="number"
 							min="0"
@@ -184,7 +194,7 @@
 							bind:value={user.digest_evening_minute}
 						/>
 					</div>
-				</div>
+				</fieldset>
 			</div>
 			<div class="settings-actions">
 				<button class="btn" onclick={saveSchedule} disabled={saving}>
@@ -252,6 +262,17 @@
 
 	.time-row .input {
 		width: 4rem;
+	}
+
+	.digest-field {
+		margin: 0;
+		padding: 0;
+		border: none;
+		min-width: 0;
+	}
+
+	.digest-field .label {
+		margin-bottom: 0.375rem;
 	}
 
 	@media (max-width: 540px) {

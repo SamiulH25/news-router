@@ -22,14 +22,17 @@
 	} = $props();
 
 	let contentHtml = $state<string | null>(null);
-	let heroImage = $state<string | null>(article.image_url);
+	let fetchedHeroImage = $state<string | null>(null);
 	let imageFailed = $state(false);
 	let loadingContent = $state(false);
 	let loadFailed = $state(false);
-	let isRead = $state(article.is_read);
+	let readOverride = $state<boolean | undefined>(undefined);
 	let lessSent = $state(false);
 	let bubblesOpen = $state(false);
 	let loadTimer: ReturnType<typeof setTimeout> | undefined;
+
+	const heroImage = $derived(fetchedHeroImage ?? article.image_url ?? null);
+	const isRead = $derived(readOverride ?? article.is_read);
 
 	const summaryText = $derived(article.summary ? stripHtml(article.summary, 8000) : '');
 
@@ -45,7 +48,7 @@
 
 	function recordOpen() {
 		if (isRead) return;
-		isRead = true;
+		readOverride = true;
 		api.engage(article.user_article_id, { event: 'open' }).catch(() => {
 			toast.error('Could not save that you opened this story');
 		});
@@ -82,6 +85,16 @@
 	}
 
 	$effect(() => {
+		article.user_article_id;
+		readOverride = undefined;
+		fetchedHeroImage = null;
+		contentHtml = null;
+		loadFailed = false;
+		loadingContent = false;
+		imageFailed = false;
+	});
+
+	$effect(() => {
 		if (!isActive) {
 			if (loadTimer) clearTimeout(loadTimer);
 			if (bubblesOpen) {
@@ -99,8 +112,8 @@
 				.readArticle(article.id)
 				.then((full) => {
 					contentHtml = full.content_html;
-					if (full.image_url && !heroImage) {
-						heroImage = full.image_url;
+					if (full.image_url) {
+						fetchedHeroImage = full.image_url;
 					}
 				})
 				.catch(() => {

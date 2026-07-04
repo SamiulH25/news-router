@@ -10,8 +10,15 @@
 		onclick?: () => void;
 	} = $props();
 
-	let isRead = $state(article.is_read);
+	let readOverride = $state<boolean | undefined>(undefined);
 	let lessSent = $state(false);
+
+	const isRead = $derived(readOverride ?? article.is_read);
+
+	$effect(() => {
+		article.user_article_id;
+		readOverride = undefined;
+	});
 
 	function formatDate(value: string | null) {
 		if (!value) return '';
@@ -31,7 +38,7 @@
 		e.stopPropagation();
 		try {
 			await api.markUnread(article.user_article_id);
-			isRead = false;
+			readOverride = false;
 			toast.info('Marked unread');
 		} catch {
 			toast.error('Could not mark unread');
