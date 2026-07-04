@@ -44,7 +44,7 @@ Your data stays on your server. No ads, no algorithmic feed, no third-party trac
 ### 1. Clone and configure
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/news-router.git
+git clone https://github.com/SamiulH25/news-router.git
 cd news-router
 cp .env.example .env
 ```
