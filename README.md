@@ -1,120 +1,148 @@
 # News Router
 
-A local-first household news router. Follow RSS feeds, tag them with topics and keywords, and read a clean feed in the browser. Get push notifications when your morning and evening briefs are ready.
+**News Router** is a self-hosted news reader for households and small teams. It pulls stories from RSS feeds, organizes them into topics you define, and delivers a focused daily edition in the browser—with optional morning and evening push briefings.
+
+Your data stays on your server. No ads, no algorithmic feed, no third-party tracking.
+
+---
+
+## Why News Router
+
+- **One place for your sources** — CBC, BBC, NPR, regional papers, niche blogs: add any RSS feed or pick from a curated catalog at signup.
+- **Topics that match how you think** — Group feeds into channels (Headlines, Politics, Local) and filter with keywords.
+- **Edition, not endless scroll** — Stories from the last 12 hours, ranked and grouped so you can finish the news and move on.
+- **Reels or list** — Swipe through stories with tap-to-read sections, or browse a traditional list view.
+- **Push when it matters** — Morning and evening digests via [ntfy](https://ntfy.sh/) to your phone or desktop.
+- **Multi-user** — Separate accounts for everyone at home; each person gets their own feeds, topics, and read state.
+
+---
 
 ## Features
 
-- Multi-user accounts with simple username/password auth
-- RSS feed ingestion with deduplication
-- Per-user topics with keyword filtering
-- Web feed grouped by topic (last 12 hours of stories)
-- In-app article reader (content extraction via trafilatura)
-- Scheduled morning and evening push via self-hosted [ntfy](https://ntfy.sh/)
-- OPML import/export
-- Docker Compose for one-command local deployment
+| | |
+|---|---|
+| **Feed ingestion** | RSS/Atom with automatic discovery, deduplication, and parallel polling |
+| **Onboarding** | Pre-configured outlets by country; choose what to follow at setup |
+| **Reader** | In-app reading with full-article extraction |
+| **Personalization** | Read/unread state, “less like this,” optional ranking signals |
+| **Import / export** | OPML for feeds |
+| **Notifications** | Scheduled digests through a self-hosted ntfy instance |
+| **Admin** | First registered user is admin; registration can be disabled in production |
 
-## Quick start
+---
 
-From the project root:
+## Requirements
 
-```bash
-npm install          # once — installs root orchestration scripts
-npm run start:dev    # local dev (API + UI + ntfy, hot reload)
-npm run start:prod   # production (Docker Compose)
-```
+- [Docker](https://docs.docker.com/get-docker/) and Docker Compose (recommended)
+- Or: Node.js 20+, Python 3.11+ for manual deployment
+- A server or always-on home machine with outbound HTTPS (for fetching feeds)
 
-**Windows shortcut:**
+---
 
-```powershell
-.\run.ps1            # same as npm run start:dev
-.\run.ps1 -Docker    # same as npm run start:prod
-```
+## Quick start (production)
 
-Open the **Web UI** URL printed in the terminal (ports are chosen automatically from a free range). Register the first account — it becomes admin.
-
-| Command | What it does |
-|---------|----------------|
-| `npm run start:dev` | Picks free API/UI ports (8000–8099 / 5173–5272), starts stack + ntfy |
-| `npm run start:prod` | Full stack via `docker compose up --build` |
-| `npm run start:prod:local` | Built frontend + uvicorn without Docker |
-
-### Services
-
-| Service  | URL                      |
-|----------|--------------------------|
-| Web UI   | http://localhost:5173    |
-| API      | http://localhost:8000    |
-| ntfy     | http://localhost:2586    |
-
-## LAN access (household devices)
-
-1. Find your server's LAN IP (e.g. `192.168.1.50`).
-2. Allow ports **5173**, **8000**, and **2586** through Windows Firewall.
-3. Other devices open **http://192.168.1.50:5173**.
-4. Set in `.env` / `docker-compose.yml`:
-   - `CORS_ORIGINS=http://192.168.1.50:5173,...`
-   - `APP_BASE_URL=http://192.168.1.50:5173`
-5. Restart: `docker compose up -d`
-
-## Push notifications (ntfy)
-
-1. Install the ntfy app on your phone ([Android](https://play.google.com/store/apps/details?id=io.heckel.ntfy) / [iOS](https://apps.apple.com/app/ntfy/id1625396347)).
-2. Add server: `http://<server-ip>:2586` (or use default ntfy.sh with self-hosted topic — subscribe to your private topic from Settings).
-3. In News Router **Settings**, copy your private topic name and subscribe in the app.
-4. Digests go out at **7:00 AM** and **7:00 PM** server time with unread stories from the last 12 hours.
-
-## Local development (without Docker)
-
-### Backend
+### 1. Clone and configure
 
 ```bash
-cd backend
-python -m venv .venv
-.venv\Scripts\activate        # Windows
-pip install -r requirements.txt
-mkdir data
-uvicorn app.main:app --reload --port 8000
+git clone https://github.com/YOUR_USERNAME/news-router.git
+cd news-router
+cp .env.example .env
 ```
 
-### Frontend
+Edit `.env` before first run:
+
+| Variable | Purpose |
+|----------|---------|
+| `SECRET_KEY` | **Required.** Long random string for session signing |
+| `APP_BASE_URL` | Public URL users open (e.g. `https://news.example.com`) |
+| `CORS_ORIGINS` | Same origin(s) as `APP_BASE_URL`, comma-separated |
+| `ALLOW_REGISTRATION` | Set `false` after creating accounts (via compose env) |
+| `DATABASE_URL` | SQLite by default; use PostgreSQL for heavier use |
+| `NTFY_BASE_URL` | URL of your ntfy server for push |
+
+### 2. Start the stack
 
 ```bash
-cd frontend
-npm install
-npm run dev
+docker compose --profile prod up -d --build
 ```
 
-The Vite dev server proxies `/api` to `http://localhost:8000`.
+Open **http://localhost:3000** (or your configured `APP_BASE_URL`).
 
-## Workflow
+### 3. Create your account
 
-1. **Register** each household member.
-2. **Add feeds** (Settings → Feeds) — paste RSS URLs or import OPML.
-3. **Create topics** (Settings → Topics) — name them, add keywords, link feeds.
-4. Articles matching keywords from linked feeds appear in **Today's Feed**.
-5. Tap an article to read in-app, or open the original source.
+Register the first user — this account receives admin access. Complete onboarding: timezone, first topic, and news outlets by region.
 
-### Keyword matching
+### 4. Pull your first edition
 
-- Keywords are comma-separated (e.g. `climate, energy, solar`).
-- Matching is case-insensitive substring search on title + summary.
-- Empty keywords = all articles from linked feeds match.
+Open **Read**, tap **Pull latest**, and stories from your sources appear within the edition window (default: last 12 hours).
 
-## Cloud deployment (later)
+---
 
-Same Docker Compose stack on a VPS:
+## Push notifications
 
-1. Swap `DATABASE_URL` to PostgreSQL.
-2. Add Caddy/Traefik for HTTPS.
-3. Point a domain at the server.
-4. Run ntfy on a subdomain with TLS.
+News Router sends digest notifications through ntfy (included in the Docker stack on port 2586).
+
+1. Install the [ntfy app](https://ntfy.sh/) on your devices.
+2. In **Settings**, copy your private topic name.
+3. Subscribe to that topic in the app, pointing at your ntfy server URL.
+4. Digests arrive at the morning and evening times set in your account (default 7:00 and 19:00 in your timezone).
+
+For production, put ntfy behind HTTPS on a subdomain (e.g. `ntfy.example.com`) and update `NTFY_BASE_URL`.
+
+---
+
+## Configuration reference
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SECRET_KEY` | — | Session encryption key (change in production) |
+| `DATABASE_URL` | SQLite file | Database connection string |
+| `CORS_ORIGINS` | localhost | Allowed browser origins |
+| `APP_BASE_URL` | `http://localhost:5173` | Canonical app URL for links |
+| `NTFY_BASE_URL` | `http://localhost:2586` | ntfy server for push |
+| `FEED_POLL_INTERVAL_MINUTES` | `45` | Background poll interval |
+| `FEED_WINDOW_HOURS` | `12` | How far back the edition looks |
+| `DIGEST_MORNING_HOUR` | `7` | Default morning digest hour (UTC server; users set timezone) |
+| `DIGEST_EVENING_HOUR` | `19` | Default evening digest hour |
+
+---
+
+## Deployment behind HTTPS
+
+Use a reverse proxy (Caddy, nginx, Traefik) in front of the production frontend (port 3000) and API. A sample [Caddyfile](./Caddyfile) is included.
+
+For PostgreSQL instead of SQLite:
+
+```bash
+docker compose --profile prod --profile postgres up -d --build
+```
+
+Set `DATABASE_URL=postgresql+asyncpg://news:news@postgres:5432/news_router` on the API service and use a strong `POSTGRES_PASSWORD`.
+
+---
+
+## How it works
+
+```
+RSS feeds  →  poll & dedupe  →  match topics  →  daily edition  →  browser / push
+```
+
+1. **Sources** — Feeds are fetched on a schedule and stored once globally; each user subscribes to the feeds they want.
+2. **Topics** — You link feeds to topics and optionally add keywords. Matching stories route into that channel.
+3. **Edition** — The Read view shows recent, unread stories grouped by topic—with reels or list layout.
+4. **Digests** — At scheduled times, unread highlights are summarized and sent via ntfy.
+
+---
 
 ## Tech stack
 
-- **Backend:** FastAPI, SQLAlchemy, feedparser, trafilatura, APScheduler
-- **Frontend:** SvelteKit, Tailwind CSS
+- **Backend:** FastAPI, SQLAlchemy, feedparser, trafilatura
+- **Frontend:** SvelteKit
+- **Database:** SQLite (default) or PostgreSQL
 - **Push:** ntfy
-- **Database:** SQLite (local) / PostgreSQL (production)
+- **Deploy:** Docker Compose
+
+---
 
 ## License
 
